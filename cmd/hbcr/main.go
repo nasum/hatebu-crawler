@@ -26,7 +26,19 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Println(*target)
+		bookmarkUrl := fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", *target)
+		fmt.Println(bookmarkUrl)
+
+		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+			link := e.Attr("href")
+			fmt.Printf("Link: %s\n", link)
+		})
+
+		err = c.Visit(bookmarkUrl)
+
+		if err != nil {
+			fmt.Printf("err: %s", err)
+		}
 	case "top":
 		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 			link := e.Attr("href")
