@@ -20,25 +20,35 @@ func GetBookmark(c *colly.Collector) {
 	}
 
 	bookmarkUrl := fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", *target)
+
 	fmt.Println(bookmarkUrl)
 
-	c.OnHTML(".bookmark-item", func(e *colly.HTMLElement) {
+	var bookmarkList BookMarkList
+
+	c.OnHTML("li.bookmark-item", func(e *colly.HTMLElement) {
 		link := e.DOM.Find(".centerarticle-entry-title a[href]")
 		title := link.Text()
 		url, _ := link.Attr("href")
-		fmt.Printf("%s: %s\n", title, url)
 
 		var tags []string
 		e.DOM.Find(".centerarticle-reaction-tags li").Each(func(_ int, s *goquery.Selection) {
 			tags = append(tags, s.Find("a").Text())
 		})
 
-		fmt.Printf("tags: %s\n", tags)
-
 		createdAt := e.DOM.Find(".centerarticle-reaction-timestamp").Text()
 
-		fmt.Printf("created_at: %s\n", createdAt)
+		bookmark := BookMark{
+			Title:     title,
+			URL:       url,
+			Tags:      tags,
+			CreatedAt: createdAt,
+		}
 
+		bookmarkList = append(bookmarkList, bookmark)
+	})
+
+	c.OnScraped(func(_ *colly.Response) {
+		bookmarkList.Json()
 	})
 
 	err = c.Visit(bookmarkUrl)
