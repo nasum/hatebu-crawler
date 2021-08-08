@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/nasum/hatebu-crawler/lib"
@@ -18,7 +20,19 @@ func main() {
 
 	switch os.Args[1] {
 	case "bookmark":
-		lib.GetBookmark(c)
+		cmd := flag.NewFlagSet("bookmark", flag.ExitOnError)
+		target := cmd.String("target", "", "crawl target")
+		err := cmd.Parse(os.Args[2:])
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = lib.GetBookmark(c, *target)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	case "top":
 		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 			link := e.Attr("href")

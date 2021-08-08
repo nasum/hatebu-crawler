@@ -1,27 +1,15 @@
 package lib
 
 import (
-	"flag"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 )
 
-func GetBookmark(c *colly.Collector) {
-	cmd := flag.NewFlagSet("bookmark", flag.ExitOnError)
-	target := cmd.String("target", "", "crawl target")
-	err := cmd.Parse(os.Args[2:])
+func GetBookmark(c *colly.Collector, target string) error {
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	bookmarkUrl := fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", *target)
-
-	fmt.Println(bookmarkUrl)
+	bookmarkUrl := fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", target)
 
 	var bookmarkList BookMarkList
 
@@ -51,9 +39,7 @@ func GetBookmark(c *colly.Collector) {
 		bookmarkList.Json()
 	})
 
-	err = c.Visit(bookmarkUrl)
+	err := c.Visit(bookmarkUrl)
 
-	if err != nil {
-		fmt.Printf("err: %s", err)
-	}
+	return err
 }
