@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/hokaccha/go-prettyjson"
 )
 
 type BookMark struct {
@@ -23,4 +25,14 @@ func (bml *BookMarkList) Json() {
 		panic(err)
 	}
 	fmt.Println(buf.String())
+}
+
+func (bml *BookMarkList) ShowJson() error {
+	j, err := prettyjson.Marshal(bml)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(j))
+	return nil
 }

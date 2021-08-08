@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
@@ -36,7 +37,10 @@ func GetBookmark(c *colly.Collector, target string) error {
 	})
 
 	c.OnScraped(func(_ *colly.Response) {
-		bookmarkList.Json()
+		err := bookmarkList.ShowJson()
+		if err != nil {
+			log.Fatal(err)
+		}
 	})
 
 	err := c.Visit(bookmarkUrl)
