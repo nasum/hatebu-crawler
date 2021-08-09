@@ -3,18 +3,28 @@ package lib
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 )
 
-func GetBookmark(c *colly.Collector, target string) error {
+type BookmarkCrawler struct {
+	Target    string
+	Collector *colly.Collector
+}
 
-	bookmarkUrl := fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", target)
+func (bmk *BookmarkCrawler) CreateURL() string {
+	return fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", bmk.Target)
+}
+
+func (bmk *BookmarkCrawler) GetEntries() error {
+
+	bookmarkUrl := bmk.CreateURL()
 
 	var bookmarkList BookMarkList
 
-	c.OnHTML("li.bookmark-item", func(e *colly.HTMLElement) {
+	bmk.Collector.OnHTML("li.bookmark-item", func(e *colly.HTMLElement) {
 		link := e.DOM.Find(".centerarticle-entry-title a[href]")
 		title := link.Text()
 		url, _ := link.Attr("href")
@@ -36,14 +46,32 @@ func GetBookmark(c *colly.Collector, target string) error {
 		bookmarkList = append(bookmarkList, bookmark)
 	})
 
-	c.OnScraped(func(_ *colly.Response) {
+	bmk.Collector.OnScraped(func(_ *colly.Response) {
 		err := bookmarkList.ShowJson()
 		if err != nil {
 			log.Fatal(err)
 		}
 	})
 
-	err := c.Visit(bookmarkUrl)
+	err := bmk.Collector.Visit(bookmarkUrl)
+
+	return err
+}
+
+func (bmk *BookmarkCrawler) GetBookmarkCount() error {
+	bookmarkUrl := bmk.CreateURL()
+
+	bmk.Collector.OnHTML(".userprofile-status-count", func(e *colly.HTMLElement) {
+		count, err := strconv.Atoi(e.DOM.Text())
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(count)
+	})
+
+	err := bmk.Collector.Visit(bookmarkUrl)
 
 	return err
 }

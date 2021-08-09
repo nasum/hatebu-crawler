@@ -28,7 +28,12 @@ func main() {
 			log.Fatal(err)
 		}
 
-		err = lib.GetBookmark(c, *target)
+		crawler := lib.BookmarkCrawler{
+			Target:    *target,
+			Collector: c,
+		}
+
+		err = crawler.GetEntries()
 
 		if err != nil {
 			log.Fatal(err)
