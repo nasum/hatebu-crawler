@@ -43,7 +43,9 @@ func (bmk *BookmarkCrawler) GetEntries() error {
 			CreatedAt: createdAt,
 		}
 
-		bookmarkList = append(bookmarkList, bookmark)
+		if bookmark.Title != "{{title}}" {
+			bookmarkList = append(bookmarkList, bookmark)
+		}
 	})
 
 	bmk.Collector.OnScraped(func(_ *colly.Response) {
