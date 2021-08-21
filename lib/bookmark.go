@@ -9,22 +9,17 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-type BookmarkCrawler struct {
-	Target    string
-	Collector *colly.Collector
+func CreateURL(target string) string {
+	return fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", target)
 }
 
-func (bmk *BookmarkCrawler) CreateURL() string {
-	return fmt.Sprintf("https://b.hatena.ne.jp/%s/bookmark", bmk.Target)
-}
-
-func (bmk *BookmarkCrawler) GetEntries() error {
-
-	bookmarkUrl := bmk.CreateURL()
+func GetEntries(target string) error {
+	c := CreateCollector()
+	bookmarkUrl := CreateURL(target)
 
 	var bookmarkList BookMarkList
 
-	bmk.Collector.OnHTML("li.bookmark-item", func(e *colly.HTMLElement) {
+	c.OnHTML("li.bookmark-item", func(e *colly.HTMLElement) {
 		link := e.DOM.Find(".centerarticle-entry-title a[href]")
 		title := link.Text()
 		url, _ := link.Attr("href")
@@ -48,22 +43,40 @@ func (bmk *BookmarkCrawler) GetEntries() error {
 		}
 	})
 
-	bmk.Collector.OnScraped(func(_ *colly.Response) {
+	c.OnScraped(func(_ *colly.Response) {
 		err := bookmarkList.ShowJson()
 		if err != nil {
 			log.Fatal(err)
 		}
 	})
 
-	err := bmk.Collector.Visit(bookmarkUrl)
+	err := c.Visit(bookmarkUrl)
 
 	return err
 }
 
-func (bmk *BookmarkCrawler) GetBookmarkCount() error {
-	bookmarkUrl := bmk.CreateURL()
+func GetTop() error {
+	c := CreateCollector()
 
-	bmk.Collector.OnHTML(".userprofile-status-count", func(e *colly.HTMLElement) {
+	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		link := e.Attr("href")
+		fmt.Printf("Link: %s\n", link)
+	})
+
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("visitting", r.URL.String())
+	})
+
+	err := c.Visit("https://b.hatena.ne.jp/")
+
+	return err
+}
+
+func GetBookmarkCount(target string) error {
+	c := CreateCollector()
+	bookmarkUrl := CreateURL(target)
+
+	c.OnHTML(".userprofile-status-count", func(e *colly.HTMLElement) {
 		count, err := strconv.Atoi(e.DOM.Text())
 
 		if err != nil {
@@ -73,7 +86,7 @@ func (bmk *BookmarkCrawler) GetBookmarkCount() error {
 		fmt.Println(count)
 	})
 
-	err := bmk.Collector.Visit(bookmarkUrl)
+	err := c.Visit(bookmarkUrl)
 
 	return err
 }

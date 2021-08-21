@@ -2,18 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/nasum/hatebu-crawler/lib"
-
-	"github.com/gocolly/colly/v2"
 )
 
 func main() {
-	c := colly.NewCollector()
-
 	if len(os.Args) < 2 {
 		os.Exit(0)
 	}
@@ -28,30 +23,15 @@ func main() {
 			log.Fatal(err)
 		}
 
-		crawler := lib.BookmarkCrawler{
-			Target:    *target,
-			Collector: c,
-		}
-
-		err = crawler.GetEntries()
+		err = lib.GetEntries(*target)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "top":
-		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-			link := e.Attr("href")
-			fmt.Printf("Link: %s\n", link)
-		})
-
-		c.OnRequest(func(r *colly.Request) {
-			fmt.Println("visitting", r.URL.String())
-		})
-
-		err := c.Visit("https://b.hatena.ne.jp/")
-
+		err := lib.GetTop()
 		if err != nil {
-			fmt.Printf("err: %s", err)
+			log.Fatal(err)
 		}
 	}
 }
